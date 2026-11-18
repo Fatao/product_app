@@ -5,7 +5,6 @@ import 'package:product_app/category_names.dart';
 import 'package:product_app/favorites_store.dart';
 import 'package:product_app/product_api_client.dart';
 import 'package:product_app/product_format.dart';
-import 'package:product_app/product_repository.dart';
 import 'package:product_app/product_state.dart';
 
 import 'fakes.dart';
@@ -15,16 +14,12 @@ void main() {
   late MemoryFavoritesStore store;
   late ProductState state;
 
-  ProductState makeState() {
-    return ProductState(ProductRepository(api), store);
-  }
-
   List<String> titles() => state.visibleProducts.map((p) => p.title).toList();
 
   setUp(() {
     api = FakeProductApi();
     store = MemoryFavoritesStore();
-    state = makeState();
+    state = ProductState(testRepository(api), store);
   });
 
   group('загрузка', () {
@@ -92,21 +87,21 @@ void main() {
     });
 
     test('по части названия', () {
-      state.setSearchQuery('ap');
+      state.setSearchQuery('ок');
 
-      expect(titles(), ['Apple', 'Laptop Pro']);
+      expect(titles(), ['Яблоки', 'Молоко']);
     });
 
     test('регистр не важен', () {
-      state.setSearchQuery('APPLE');
+      state.setSearchQuery('ЯБЛОКИ');
 
-      expect(titles(), ['Apple']);
+      expect(titles(), ['Яблоки']);
     });
 
     test('пробелы по краям не мешают', () {
-      state.setSearchQuery('  milk ');
+      state.setSearchQuery('  молоко ');
 
-      expect(titles(), ['Milk']);
+      expect(titles(), ['Молоко']);
     });
 
     test('пустой результат: статус успешный, список пуст', () {
@@ -117,7 +112,7 @@ void main() {
     });
 
     test('пустая строка поиска показывает всё', () {
-      state.setSearchQuery('milk');
+      state.setSearchQuery('молоко');
       state.setSearchQuery('');
 
       expect(state.visibleProducts.length, 6);
@@ -129,33 +124,33 @@ void main() {
       await state.load();
     });
 
-    test('список категорий без повторов, по алфавиту', () {
-      expect(state.categories, ['beauty', 'groceries', 'laptops', 'smartphones']);
+    test('чипы только для непустых категорий, в заданном порядке', () {
+      expect(state.categories, ['fruits', 'beauty', 'food', 'laptops', 'phones']);
     });
 
     test('фильтр по категории', () {
-      state.selectCategory('groceries');
+      state.selectCategory('fruits');
 
-      expect(titles(), ['Apple', 'Banana', 'Milk']);
+      expect(titles(), ['Яблоки', 'Бананы']);
     });
 
     test('«Все» сбрасывает фильтр', () {
-      state.selectCategory('groceries');
+      state.selectCategory('fruits');
       state.selectCategory(null);
 
       expect(state.visibleProducts.length, 6);
     });
 
     test('поиск работает вместе с категорией', () {
-      state.selectCategory('groceries');
-      state.setSearchQuery('a');
+      state.selectCategory('fruits');
+      state.setSearchQuery('бан');
 
-      expect(titles(), ['Apple', 'Banana']);
+      expect(titles(), ['Бананы']);
     });
 
     test('в категории может ничего не найтись', () {
       state.selectCategory('laptops');
-      state.setSearchQuery('milk');
+      state.setSearchQuery('молоко');
 
       expect(state.visibleProducts, isEmpty);
     });
@@ -167,15 +162,15 @@ void main() {
     });
 
     test('по умолчанию порядок как в API', () {
-      expect(titles().first, 'Apple');
-      expect(titles().last, 'Face Cream');
+      expect(titles().first, 'Яблоки');
+      expect(titles().last, 'Крем для лица');
     });
 
     test('по названию', () {
       state.setSortOrder(SortOrder.nameAsc);
 
       expect(titles(), [
-        'Apple', 'Banana', 'Face Cream', 'Laptop Pro', 'Milk', 'Smartphone X',
+        'Бананы', 'Крем для лица', 'Молоко', 'Ноутбук Pro', 'Смартфон X', 'Яблоки',
       ]);
     });
 
@@ -183,30 +178,30 @@ void main() {
       state.setSortOrder(SortOrder.priceAsc);
 
       expect(titles(), [
-        'Banana', 'Apple', 'Milk', 'Face Cream', 'Smartphone X', 'Laptop Pro',
+        'Бананы', 'Молоко', 'Яблоки', 'Крем для лица', 'Смартфон X', 'Ноутбук Pro',
       ]);
     });
 
     test('по цене: по убыванию', () {
       state.setSortOrder(SortOrder.priceDesc);
 
-      expect(titles().first, 'Laptop Pro');
-      expect(titles().last, 'Banana');
+      expect(titles().first, 'Ноутбук Pro');
+      expect(titles().last, 'Бананы');
     });
 
     test('по рейтингу: товар без рейтинга в конце', () {
       state.setSortOrder(SortOrder.ratingDesc);
 
       expect(titles(), [
-        'Apple', 'Banana', 'Milk', 'Laptop Pro', 'Face Cream', 'Smartphone X',
+        'Яблоки', 'Бананы', 'Молоко', 'Ноутбук Pro', 'Крем для лица', 'Смартфон X',
       ]);
     });
 
     test('сортировка работает вместе с фильтром', () {
-      state.selectCategory('groceries');
-      state.setSortOrder(SortOrder.priceDesc);
+      state.selectCategory('fruits');
+      state.setSortOrder(SortOrder.priceAsc);
 
-      expect(titles(), ['Milk', 'Apple', 'Banana']);
+      expect(titles(), ['Бананы', 'Яблоки']);
     });
   });
 
@@ -216,20 +211,20 @@ void main() {
     });
 
     test('добавление и удаление', () {
-      final apple = state.allProducts.first;
+      final apples = state.allProducts.first;
 
-      state.toggleFavorite(apple);
-      expect(state.isFavorite(apple), isTrue);
+      state.toggleFavorite(apples);
+      expect(state.isFavorite(apples), isTrue);
 
-      state.toggleFavorite(apple);
-      expect(state.isFavorite(apple), isFalse);
+      state.toggleFavorite(apples);
+      expect(state.isFavorite(apples), isFalse);
     });
 
     test('показ только избранного', () {
-      state.toggleFavorite(state.allProducts[2]); // Milk
+      state.toggleFavorite(state.allProducts[2]); // Молоко
       state.toggleOnlyFavorites();
 
-      expect(titles(), ['Milk']);
+      expect(titles(), ['Молоко']);
 
       state.toggleOnlyFavorites();
       expect(state.visibleProducts.length, 6);
@@ -244,7 +239,7 @@ void main() {
 
     test('при запуске избранное читается из хранилища', () async {
       final saved = MemoryFavoritesStore({2, 4});
-      final newState = ProductState(ProductRepository(api), saved);
+      final newState = ProductState(testRepository(api), saved);
 
       await newState.load();
 
@@ -253,9 +248,14 @@ void main() {
   });
 
   group('форматирование', () {
-    test('цена', () {
-      expect(formatPrice(1.9), '\$1.90');
-      expect(formatPrice(999), '\$999.00');
+    test('цена в рублях с пробелами между тысячами', () {
+      expect(formatPrice(150), '150 ₽');
+      expect(formatPrice(1790), '1 790 ₽');
+      expect(formatPrice(85000), '85 000 ₽');
+    });
+
+    test('цена округляется до рубля', () {
+      expect(formatPrice(83.6), '84 ₽');
     });
 
     test('рейтинг', () {
@@ -269,8 +269,9 @@ void main() {
     });
 
     test('названия категорий', () {
-      expect(categoryLabel('groceries'), 'Еда');
-      expect(categoryLabel('new-things'), 'New things');
+      expect(categoryLabel('fruits'), 'Фрукты');
+      expect(categoryLabel('women'), 'Женская одежда');
+      expect(categoryLabel('phones'), 'Телефоны');
     });
   });
 }

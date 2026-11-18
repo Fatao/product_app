@@ -110,11 +110,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             categoryLabel(product.category),
             style: const TextStyle(color: Colors.grey),
           ),
-          if (product.brand != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text('Бренд: ${product.brand}'),
-            ),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -152,27 +147,40 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
           const Divider(height: 32),
           Text(
-            'Описание',
+            'О товаре',
             style: theme.textTheme.titleMedium
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Text(
-            product.description.isEmpty
-                ? 'Описание отсутствует.'
-                : product.description,
-            key: const ValueKey('detail_description'),
+          _InfoRow(label: 'Категория', value: categoryLabel(product.category)),
+          if (product.brand != null)
+            _InfoRow(label: 'Бренд', value: product.brand!),
+          _InfoRow(label: 'Код товара', value: '${product.id}'),
+        ],
+      ),
+    );
+  }
+}
+
+// Строка «название — значение» в блоке «О товаре»
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(label, style: const TextStyle(color: Colors.grey)),
           ),
-          if (product.tags.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: [
-                for (final tag in product.tags) Chip(label: Text(tag)),
-              ],
-            ),
-          ],
+          Expanded(child: Text(value)),
         ],
       ),
     );

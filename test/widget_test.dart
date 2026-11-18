@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:product_app/favorites_store.dart';
 import 'package:product_app/main.dart';
 import 'package:product_app/product_api_client.dart';
-import 'package:product_app/product_repository.dart';
 import 'package:product_app/product_state.dart';
 
 import 'fakes.dart';
@@ -16,7 +15,7 @@ void main() {
 
   setUp(() {
     api = FakeProductApi();
-    state = ProductState(ProductRepository(api), MemoryFavoritesStore());
+    state = ProductState(testRepository(api), MemoryFavoritesStore());
   });
 
   Future<void> openApp(WidgetTester tester) async {
@@ -34,10 +33,10 @@ void main() {
 
     expect(find.text('Продукты'), findsOneWidget);
     expect(find.byKey(const ValueKey('category_all')), findsOneWidget);
-    expect(find.byKey(const ValueKey('category_groceries')), findsOneWidget);
-    expect(find.text('Apple'), findsOneWidget);
-    expect(find.text('Laptop Pro'), findsOneWidget);
-    expect(find.text('\$1.99'), findsOneWidget);
+    expect(find.byKey(const ValueKey('category_fruits')), findsOneWidget);
+    expect(find.text('Яблоки'), findsOneWidget);
+    expect(find.text('Ноутбук Pro'), findsOneWidget);
+    expect(find.text('150 ₽'), findsOneWidget);
     expect(find.text('4.8'), findsOneWidget);
   });
 
@@ -55,22 +54,22 @@ void main() {
     api.gate!.complete();
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('loading')), findsNothing);
-    expect(find.text('Apple'), findsOneWidget);
+    expect(find.text('Яблоки'), findsOneWidget);
   });
 
   testWidgets('поиск по названию', (tester) async {
     await openApp(tester);
 
-    await tester.enterText(find.byKey(const ValueKey('search_field')), 'milk');
+    await tester.enterText(find.byKey(const ValueKey('search_field')), 'молоко');
     await tester.pump();
 
-    expect(find.text('Milk'), findsOneWidget);
-    expect(find.text('Apple'), findsNothing);
+    expect(find.text('Молоко'), findsOneWidget);
+    expect(find.text('Яблоки'), findsNothing);
 
     // крестик очищает поиск
     await tester.tap(find.byKey(const ValueKey('clear_search')));
     await tester.pump();
-    expect(find.text('Apple'), findsOneWidget);
+    expect(find.text('Яблоки'), findsOneWidget);
   });
 
   testWidgets('пустой результат поиска', (tester) async {
@@ -80,21 +79,21 @@ void main() {
     await tester.pump();
 
     expect(find.text('Ничего не найдено'), findsOneWidget);
-    expect(find.text('Apple'), findsNothing);
+    expect(find.text('Яблоки'), findsNothing);
   });
 
   testWidgets('фильтр по категории', (tester) async {
     await openApp(tester);
 
-    await tester.tap(find.byKey(const ValueKey('category_groceries')));
+    await tester.tap(find.byKey(const ValueKey('category_fruits')));
     await tester.pump();
 
-    expect(find.text('Apple'), findsOneWidget);
-    expect(find.text('Laptop Pro'), findsNothing);
+    expect(find.text('Яблоки'), findsOneWidget);
+    expect(find.text('Ноутбук Pro'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('category_all')));
     await tester.pump();
-    expect(find.text('Laptop Pro'), findsOneWidget);
+    expect(find.text('Ноутбук Pro'), findsOneWidget);
   });
 
   testWidgets('сортировка по цене', (tester) async {
@@ -109,9 +108,9 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    // Banana (0.99) теперь выше Apple (1.99)
-    final bananaTop = tester.getTopLeft(find.text('Banana')).dy;
-    final appleTop = tester.getTopLeft(find.text('Apple')).dy;
+    // Бананы (90 ₽) теперь выше Яблок (150 ₽)
+    final bananaTop = tester.getTopLeft(find.text('Бананы')).dy;
+    final appleTop = tester.getTopLeft(find.text('Яблоки')).dy;
     expect(bananaTop, lessThan(appleTop));
   });
 
@@ -122,8 +121,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('detail_title')), findsOneWidget);
-    expect(find.text('Fresh apples'), findsOneWidget);
-    expect(find.text('\$1.99'), findsOneWidget);
+    expect(find.text('Фрукты'), findsWidgets);
+    expect(find.text('150 ₽'), findsOneWidget);
     expect(find.text('4.8'), findsOneWidget);
     expect(find.text('В наличии: 50 шт.'), findsOneWidget);
 
@@ -160,7 +159,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('retry_button')), findsNothing);
-    expect(find.text('Apple'), findsOneWidget);
+    expect(find.text('Яблоки'), findsOneWidget);
   });
 
   testWidgets('избранное: сердечко на карточке и фильтр', (tester) async {
@@ -173,8 +172,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('favorites_filter')));
     await tester.pump();
 
-    expect(find.text('Milk'), findsOneWidget);
-    expect(find.text('Apple'), findsNothing);
+    expect(find.text('Молоко'), findsOneWidget);
+    expect(find.text('Яблоки'), findsNothing);
   });
 
   testWidgets('большой список прокручивается до конца', (tester) async {
@@ -182,7 +181,7 @@ void main() {
     await openApp(tester);
 
     await tester.scrollUntilVisible(
-      find.text('Item 300'),
+      find.text('Товар 300'),
       600,
       scrollable: find.descendant(
         of: find.byKey(const ValueKey('product_list')),
@@ -191,6 +190,6 @@ void main() {
       maxScrolls: 200,
     );
 
-    expect(find.text('Item 300'), findsOneWidget);
+    expect(find.text('Товар 300'), findsOneWidget);
   });
 }

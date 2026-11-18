@@ -1,8 +1,13 @@
 // Превращаем числа в текст для экрана.
 
-// 129.9 -> $129.90 (API отдаёт цены в долларах)
+// 1790 -> «1 790 ₽» (пробелы неразрывные, чтобы цена не переносилась)
 String formatPrice(double price) {
-  return '\$${price.toStringAsFixed(2)}';
+  final digits = price.round().toString();
+  final grouped = digits.replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (match) => ' ',
+  );
+  return '$grouped ₽';
 }
 
 // 4.8 -> 4.8

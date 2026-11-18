@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'category_names.dart';
 import 'favorites_store.dart';
 import 'product.dart';
 import 'product_api_client.dart';
@@ -51,10 +52,11 @@ class ProductState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Категории, которые есть в загруженных товарах
+  // Категории, в которых есть товары, в том порядке, как задано в приложении.
+  // Если в категории пусто, чипа для неё нет.
   List<String> get categories {
-    final codes = allProducts.map((product) => product.category).toSet();
-    return codes.toList()..sort();
+    final present = allProducts.map((product) => product.category).toSet();
+    return shopCategoryOrder.where((code) => present.contains(code)).toList();
   }
 
   // Список после поиска, фильтров и сортировки. Именно его рисует экран.

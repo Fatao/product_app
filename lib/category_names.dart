@@ -1,39 +1,36 @@
-// API отдаёт категории английскими кодами («home-decoration»).
-// Здесь переводим их в названия для экрана.
+// Категории приложения. Их порядок здесь — это порядок чипов на экране.
+const shopCategoryOrder = [
+  'sports',
+  'books',
+  'fruits',
+  'vegetables',
+  'electronics',
+  'women',
+  'men',
+  'kids',
+  'shoes',
+  'beauty',
+  'food',
+  'laptops',
+  'phones',
+];
 
 const _categoryNames = {
+  'sports': 'Спорт',
+  'books': 'Книги',
+  'fruits': 'Фрукты',
+  'vegetables': 'Овощи',
+  'electronics': 'Электроника',
+  'women': 'Женская одежда',
+  'men': 'Мужская одежда',
+  'kids': 'Детская одежда',
+  'shoes': 'Обувь',
   'beauty': 'Красота',
-  'fragrances': 'Духи',
-  'furniture': 'Мебель',
-  'groceries': 'Еда',
-  'home-decoration': 'Декор для дома',
-  'kitchen-accessories': 'Кухня',
+  'food': 'Еда',
   'laptops': 'Ноутбуки',
-  'mens-shirts': 'Мужские рубашки',
-  'mens-shoes': 'Мужская обувь',
-  'mens-watches': 'Мужские часы',
-  'mobile-accessories': 'Аксессуары',
-  'motorcycle': 'Мотоциклы',
-  'skin-care': 'Уход за кожей',
-  'smartphones': 'Смартфоны',
-  'sports-accessories': 'Спорт',
-  'sunglasses': 'Очки',
-  'tablets': 'Планшеты',
-  'tops': 'Топы',
-  'vehicle': 'Транспорт',
-  'womens-bags': 'Женские сумки',
-  'womens-dresses': 'Платья',
-  'womens-jewellery': 'Украшения',
-  'womens-shoes': 'Женская обувь',
-  'womens-watches': 'Женские часы',
+  'phones': 'Телефоны',
 };
 
 String categoryLabel(String code) {
-  final known = _categoryNames[code];
-  if (known != null) return known;
-
-  // незнакомая категория: «new-things» -> «New things»
-  final text = code.replaceAll('-', ' ');
-  if (text.isEmpty) return text;
-  return text[0].toUpperCase() + text.substring(1);
+  return _categoryNames[code] ?? code;
 }

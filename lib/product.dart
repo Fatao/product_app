@@ -29,6 +29,24 @@ class Product {
   final List<String> images; // все картинки для экрана подробностей
   final List<String> tags;
 
+  // Копия с изменёнными полями (поля у Product final)
+  Product copyWith({String? title, String? category, double? price}) {
+    return Product(
+      id: id,
+      title: title ?? this.title,
+      category: category ?? this.category,
+      price: price ?? this.price,
+      description: description,
+      discountPercentage: discountPercentage,
+      rating: rating,
+      stock: stock,
+      brand: brand,
+      thumbnail: thumbnail,
+      images: images,
+      tags: tags,
+    );
+  }
+
   // Если в JSON нет обязательного поля (id, title, price) или оно другого типа,
   // тут вылетит ошибка. Её ловит ApiClient и показывает «некорректный ответ».
   factory Product.fromJson(Map<String, dynamic> json) {

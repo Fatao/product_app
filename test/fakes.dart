@@ -2,50 +2,56 @@ import 'dart:async';
 
 import 'package:product_app/product.dart';
 import 'package:product_app/product_api_client.dart';
+import 'package:product_app/product_repository.dart';
 
-// Маленький каталог с известными ценами и рейтингами
+// Маленький каталог в том виде, в каком его показывает приложение:
+// русские названия, цены в рублях, категории приложения
 List<Product> sampleProducts() {
   return const [
     Product(
       id: 1,
-      title: 'Apple',
-      category: 'groceries',
-      price: 1.99,
+      title: 'Яблоки',
+      category: 'fruits',
+      price: 150,
       rating: 4.8,
       stock: 50,
-      description: 'Fresh apples',
       images: ['https://example.com/apple1.jpg', 'https://example.com/apple2.jpg'],
-      tags: ['fruit'],
     ),
-    Product(id: 2, title: 'Banana', category: 'groceries', price: 0.99, rating: 4.6),
-    Product(id: 3, title: 'Milk', category: 'groceries', price: 2.49, rating: 4.5),
+    Product(id: 2, title: 'Бананы', category: 'fruits', price: 90, rating: 4.6),
+    Product(id: 3, title: 'Молоко', category: 'food', price: 120, rating: 4.5),
     Product(
       id: 4,
-      title: 'Laptop Pro',
+      title: 'Ноутбук Pro',
       category: 'laptops',
-      price: 999.0,
+      price: 85000,
       rating: 4.2,
       brand: 'Acme',
     ),
     // у этого товара нет рейтинга: API его не прислал
-    Product(id: 5, title: 'Smartphone X', category: 'smartphones', price: 599.0),
-    Product(id: 6, title: 'Face Cream', category: 'beauty', price: 12.5, rating: 3.9),
+    Product(id: 5, title: 'Смартфон X', category: 'phones', price: 50000),
+    Product(id: 6, title: 'Крем для лица', category: 'beauty', price: 1050, rating: 3.9),
   ];
 }
 
 // Большой каталог для проверки длинного списка
 List<Product> manyProducts(int count) {
-  const categories = ['groceries', 'beauty', 'laptops'];
+  const categories = ['fruits', 'beauty', 'laptops'];
   return [
     for (var i = 1; i <= count; i++)
       Product(
         id: i,
-        title: 'Item $i',
+        title: 'Товар $i',
         category: categories[i % categories.length],
-        price: i + 0.5,
+        price: i * 10.0,
         rating: (i % 5) + 1.0,
       ),
   ];
+}
+
+// Репозиторий для тестов состояния: товары уже в нужном виде,
+// поэтому перевод и пересчёт цен не нужны
+ProductRepository testRepository(ProductApiClient api) {
+  return ProductRepository(api, localizer: (product) => product);
 }
 
 // Подмена настоящего клиента: сеть не нужна, ответом управляет тест
